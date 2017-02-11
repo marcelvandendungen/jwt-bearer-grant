@@ -1,13 +1,29 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json.Serialization;
+using System;
 
 namespace Api1
 {
     public class Startup
     {
+        public Startup(IHostingEnvironment env)
+        {
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(env.ContentRootPath)
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true);
+
+            builder.AddEnvironmentVariables();
+            Configuration = builder.Build();
+        }
+
+        public IConfigurationRoot Configuration { get; }
+
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddCors(o => o.AddPolicy("AllowAllPolicy", builder =>
@@ -16,6 +32,8 @@ namespace Api1
                        .AllowAnyMethod()
                        .AllowAnyHeader();
             }));
+
+            services.AddAuthentication();
 
             services.AddMvc().AddJsonOptions(opts =>
             {
@@ -27,6 +45,25 @@ namespace Api1
         {
             loggerFactory.AddConsole();
             loggerFactory.AddDebug();
+
+            string tenantId = Configuration["TenantId1"];    // stored in env vars
+            string audience = Configuration["ClientId1"];
+
+            Console.WriteLine(tenantId);
+            Console.WriteLine(audience);
+
+            app.UseJwtBearerAuthentication(new JwtBearerOptions
+            {
+                AutomaticAuthenticate = true,
+                AutomaticChallenge = true,
+                TokenValidationParameters = new TokenValidationParameters()
+                {
+                    SaveSigninToken = true,
+                    ValidateIssuer = false
+                },
+                Authority = string.Format("https://login.microsoftonline.com/{0}", tenantId),
+                Audience = audience,
+            });
 
             app.UseCors("AllowAllPolicy");
             app.UseDefaultFiles();
