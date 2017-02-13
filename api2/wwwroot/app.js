@@ -22,7 +22,18 @@
                 document.write(error);
             }
             if (token) {
-                document.write(token);
+                // successfully acquired token
+                document.write(token + "\n");
+                // call api2 to get data
+                $.ajax({
+                    type: "GET",
+                    url: window.location.origin + "/api/test",
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    }
+                }).then(function(data) {
+                    document.write(data + "\n");
+                });
             }
         });
     } else {

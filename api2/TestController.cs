@@ -1,3 +1,4 @@
+using System;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -10,7 +11,8 @@ namespace Api2 {
         [HttpGet]
         public IActionResult Get()
         {
-            return Ok("api2");
+            var data = "Hello from Api2";
+            return Ok(data);
         }
     }
 }
