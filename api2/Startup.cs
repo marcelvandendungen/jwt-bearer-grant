@@ -33,6 +33,7 @@ namespace Api2
                        .AllowAnyHeader();
             }));
 
+            services.AddSingleton(_ => Configuration);
             services.AddAuthentication();
 
             services.AddMvc().AddJsonOptions(opts =>
