@@ -5,6 +5,10 @@ using Microsoft.IdentityModel.Clients.ActiveDirectory;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using System;
+using Newtonsoft.Json;
+using System.Net.Http;
+using System.Net.Http.Headers;
 
 namespace Api2 {
     
@@ -23,16 +27,25 @@ namespace Api2 {
         public async Task<IActionResult> Get()
         {
             string resource = Configuration["ResourceUri"];
-            System.Console.WriteLine(resource);
-            var token = await acquireToken(resource);
+            System.Console.WriteLine("resource: " + resource);
+            var token = await AcquireToken(resource);
 
-            var data = "Hello from Api2";
+            var data = await CallApi1(token);
             return Ok(data);
         }
 
-        private async Task<string> acquireToken(string resource)
+        private async Task<string> CallApi1(string token)
         {
-            string tenantId = Configuration["TenantId2"];
+            var httpClient = new HttpClient();
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+            var url = new Uri("http://localhost:5000/api/test");
+            return await httpClient.GetStringAsync(url);
+        }
+
+        private async Task<string> AcquireToken(string resource)
+        {
+            string tenantId = GetTenantId();
             System.Console.WriteLine(tenantId);
             string clientId = Configuration["ClientId2"];
             System.Console.WriteLine(clientId);
@@ -45,22 +58,30 @@ namespace Api2 {
             UserAssertion userAssertion = new UserAssertion(GetJwt(), "urn:ietf:params:oauth:grant-type:jwt-bearer", GetUserName());
 
             var adal = new AuthenticationContext(authority);
-            var result = await adal.AcquireTokenAsync(resource, clientId, userAssertion);
+            var result = await adal.AcquireTokenAsync(resource, clientCred, userAssertion);
 
+            System.Console.WriteLine("jwt: " + result.AccessToken);
             return result.AccessToken;
+        }
+
+        private string GetTenantId()
+        {
+            var tenantId = User.Claims.Single(c => c.Type == "http://schemas.microsoft.com/identity/claims/tenantid").Value;
+            System.Console.WriteLine("tenantId: " + tenantId);
+            return tenantId;
         }
 
         private string GetUserName()
         {
             var username = User.Claims.Single(c => c.Type == ClaimTypes.Upn).Value;
-            System.Console.WriteLine(username);
+            System.Console.WriteLine("username: " + username);
             return username;
         }
 
         private string GetJwt()
         {
             var jwt = User.Identities.First().BootstrapContext as string;
-            System.Console.WriteLine(jwt);
+            System.Console.WriteLine("bootstrap: " + jwt);
             return jwt;
         }
     }

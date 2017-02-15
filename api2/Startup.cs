@@ -50,8 +50,8 @@ namespace Api2
             string tenantId = Configuration["TenantId2"];    // stored in env vars
             string audience = Configuration["ClientId2"];
 
-            Console.WriteLine(tenantId);
-            Console.WriteLine(audience);
+            Console.WriteLine("tenantId: " + tenantId);
+            Console.WriteLine("audience: " + audience);
 
             app.UseJwtBearerAuthentication(new JwtBearerOptions
             {

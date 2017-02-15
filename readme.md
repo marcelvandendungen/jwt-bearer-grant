@@ -25,32 +25,36 @@ When the AcquireToken call is made with client credentials for API2 and the JWT 
 ## Repro steps:
 - clone repository locally.
 - goto API1 folder and run `dotnet restore`
+- goto API2 folder and run `dotnet restore` 
+
+
 - navigate to Azure portal and select or create a directory (directory1)
-- create API1 application in directory1 (Web app/api).
+- create API1 application in directory1 (API1 - Web app/api - http://localhost:5000).
 - enable implicit flow in application manifest.
 - make app multi-tenanted.
-- save Application ID and Tenant id (from Help | Show diagnostics)
-- set the values of `TenantId1` and `ClientId1` as environment variables
+- save Application ID, App ID Uri and Tenant id (from Help | Show diagnostics)
+- set environment variables with names `TenantId1` and `ClientId1` with appropriate values from API1.
 - enter the value for ClientId in config.js in API1/wwwroot folder
 - in API1 folder, run `dotnet run`.
-- navigate your browser to `http://localhost:5000` and sign in with a user
- from directory2 and consent API1.
+- navigate your browser to `http://localhost:5000` and sign in with a **user from directory2** and consent API1.
 
 
-- goto API2 folder and run `dotnet restore` 
 - navigate to Azure portal and select or create a directory (directory2)
-- create API2 application in directory2 (Web app/api).
+- create API2 application in directory2 (API2 - Web app/api - http://localhost:5001).
 - enable implicit flow in application manifest.
 - make app multi-tenanted.
+- give API2 permission to call API1
 - save Application ID and Tenant id (from Help | Show diagnostics)
 - add client secret (key) to application and save value.
-- set the values of `TenantId2` and `ClientId2` as environment variables
-- set the value of secret key as environment variable `ClientSecret`
-- set the value of the App ID Uri of API1 as environment variable `ResourceUri` (like https://\<tenant>.onmicrosoft.com/\<identifier>)
+- set environment variables with names `TenantId2` and `ClientId2` with appropriate values from API2.
+- set the value of the secret key as environment variable `ClientSecret`
+- set the value of the API1 Application ID as environment variable `ResourceUri`.
 - enter the value for ClientId in config.js in API2/wwwroot folder
 - in API2 folder, run `dotnet run`.
 
 
+- navigate your browser to `http://localhost:5000` and sign in with a user from directory3.
+- consent the API1
 - navigate your browser to `http://localhost:5001` and sign in with a user from directory3.
 - consent the API2
-- check console log in API2 windows for exception.
+- check console log in API2 windows for exceptions.
